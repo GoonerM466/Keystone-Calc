@@ -28,7 +28,7 @@ st.markdown(
         <span class="screen-title">=== VISUAL 16:9 SCREEN LAYOUT ===</span>
     </div>
     """,
-    unsafe_allowed_html=True
+    unsafe_allow_html=True
 )
 
 # 4-Corner Grid Layout
@@ -68,11 +68,7 @@ compression_pref = st.selectbox(
 )
 
 if st.button("Calculate Perfect 16:9", type="primary"):
-    # Validation
-    inputs = [tl_h, tl_v, tr_h, tr_v, br_h, br_v, bl_h, bl_v]
-    
     # Calculate widths and current heights
-    # Left width boundary to right width boundary average
     top_width_span = abs(tr_h - tl_h)
     bottom_width_span = abs(br_h - bl_h)
     avg_width = (top_width_span + bottom_width_span) / 2.0
@@ -93,7 +89,7 @@ if st.button("Calculate Perfect 16:9", type="primary"):
     else:
         # Apply the logic based on the direction of coordinate values
         if compression_pref == "Bottom Edge":
-            # Pushes the bottom edge UP (increases V values)[span_1](start_span)[span_1](end_span)
+            # Pushes the bottom edge UP (increases V values)
             new_br_v = br_v + y_offset
             new_bl_v = bl_v + y_offset
             new_tr_v = tr_v
@@ -116,4 +112,4 @@ if st.button("Calculate Perfect 16:9", type="primary"):
             st.markdown(f"**Top Right:** `{tr_h} H, {new_tr_v} V`")
             st.markdown(f"**Bottom Right:** `{br_h} H, {new_br_v} V`")
             
-        st.caption(f"Applied a uniform vertical offset of {abs(y_offset)} units[span_2](start_span)[span_2](end_span).")
+        st.caption(f"Applied a uniform vertical offset of {abs(y_offset)} units.")
