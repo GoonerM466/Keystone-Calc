@@ -43,10 +43,10 @@ st.markdown("---")
 
 st.markdown("### 2. Bottom Edge Coordinates")
 br_h = st.number_input("Bottom-Right Horizontal (BR H)", value=148, key="br_h")
-br_v = st.number_input("Bottom-Right Vertical (BR V)", value=172, key="br_v")
+br_v = st.number_input("Bottom-Right Vertical (BR V)", value=165, key="br_v")
 
 bl_h = st.number_input("Bottom-Left Horizontal (BL H)", value=153, key="bl_h")
-bl_v = st.number_input("Bottom-Left Vertical (BL V)", value=166, key="bl_v")
+bl_v = st.number_input("Bottom-Left Vertical (BL V)", value=159, key="bl_v")
 
 st.markdown("---")
 
@@ -58,39 +58,48 @@ compression_pref = st.selectbox(
 )
 
 if st.button("Calculate Perfect 16:9", type="primary"):
-    # Calculate average horizontal offset to determine the required offset scale factor
-    avg_h_offset = (tl_h + tr_h + br_h + bl_h) / 4.0
+    # 1. Calculate overall average horizontal offset
+    avg_h = (tl_h + tr_h + br_h + bl_h) / 4.0
     
-    # Linear scale factor to translate H offset to vertical offset (yielding exactly +3 offset at 148.5 H)
-    y_offset = round(avg_h_offset * 0.0202)
+    # 2. Determine target overall average vertical offset for 16:9
+    target_avg_v = avg_h * 1.1044
     
-    if y_offset == 0:
-        st.info("The image is already at a perfect 16:9 ratio!")
-    else:
-        # Apply the linear offset to the selected target edge
-        if compression_pref == "Bottom Edge":
-            new_br_v = br_v + y_offset
-            new_bl_v = bl_v + y_offset
-            new_tr_v = tr_v
-            new_tl_v = tl_v
-        else:
-            new_br_v = br_v
-            new_bl_v = bl_v
-            new_tr_v = tr_v + y_offset
-            new_tl_v = tl_v + y_offset
-
-        # Enforce physical software boundary constraints (0 to 355)
-        new_br_v = max(0, min(355, int(new_br_v)))
-        new_bl_v = max(0, min(355, int(new_bl_v)))
-        new_tr_v = max(0, min(355, int(new_tr_v)))
-        new_tl_v = max(0, min(355, int(new_tl_v)))
-
-        # Output Results - Explicitly written as a single vertical block to prevent layout scrambling
-        st.success("### Corrected 16:9 Coordinates:")
+    # 3. Calculate current averages of top and bottom edges
+    avg_top_v = (tl_v + tr_v) / 2.0
+    avg_bottom_v = (bl_v + br_v) / 2.0
+    
+    # Apply the target offset based on selected adjustment edge
+    if compression_pref == "Bottom Edge":
+        # Target average for bottom edge to balance out the top edge
+        target_bottom_v = (2 * target_avg_v) - avg_top_v
+        y_offset = round(target_bottom_v - avg_bottom_v)
         
-        st.markdown(f"**Top Left (TL):** `{tl_h} H, {new_tl_v} V`")
-        st.markdown(f"**Top Right (TR):** `{tr_h} H, {new_tr_v} V`")
-        st.markdown(f"**Bottom Right (BR):** `{br_h} H, {new_br_v} V`")
-        st.markdown(f"**Bottom Left (BL):** `{bl_h} H, {new_bl_v} V`")
-            
-        st.caption(f"Applied a vertical offset adjustment of {y_offset} units.")
+        new_br_v = br_v + y_offset
+        new_bl_v = bl_v + y_offset
+        new_tr_v = tr_v
+        new_tl_v = tl_v
+    else:
+        # Target average for top edge to balance out the bottom edge
+        target_top_v = (2 * target_avg_v) - avg_bottom_v
+        y_offset = round(target_top_v - avg_top_v)
+        
+        new_br_v = br_v
+        new_bl_v = bl_v
+        new_tr_v = tr_v + y_offset
+        new_tl_v = tl_v + y_offset
+
+    # Enforce hardware boundary constraints (0 to 355)
+    new_br_v = max(0, min(355, int(new_br_v)))
+    new_bl_v = max(0, min(355, int(new_bl_v)))
+    new_tr_v = max(0, min(355, int(new_tr_v)))
+    new_tl_v = max(0, min(355, int(new_tl_v)))
+
+    # Output Results - Clear, explicit vertical list
+    st.success("### Corrected 16:9 Coordinates:")
+    
+    st.markdown(f"**Top Left (TL):** `{tl_h} H, {new_tl_v} V`")
+    st.markdown(f"**Top Right (TR):** `{tr_h} H, {new_tr_v} V`")
+    st.markdown(f"**Bottom Right (BR):** `{br_h} H, {new_br_v} V`")
+    st.markdown(f"**Bottom Left (BL):** `{bl_h} H, {new_bl_v} V`")
+        
+    st.caption(f"Applied a precise vertical offset adjustment of {y_offset} units.")
