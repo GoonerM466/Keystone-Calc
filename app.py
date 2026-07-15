@@ -96,3 +96,26 @@ if st.button("Calculate Perfect 16:9", type="primary"):
         new_tl_v = tl_v
     else:
         # Target average for top edge to balance out the bottom edge
+        target_top_v = (2 * target_avg_v) - avg_bottom_v
+        y_offset = round(target_top_v - avg_top_v)
+        
+        new_br_v = br_v
+        new_bl_v = bl_v
+        new_tr_v = tr_v + y_offset
+        new_tl_v = tl_v + y_offset
+
+    # Enforce hardware boundary constraints (0 to 355)
+    new_br_v = max(0, min(355, int(new_br_v)))
+    new_bl_v = max(0, min(355, int(new_bl_v)))
+    new_tr_v = max(0, min(355, int(new_tr_v)))
+    new_tl_v = max(0, min(355, int(new_tl_v)))
+
+    # Output Results - Clear, explicit vertical list
+    st.success("### Corrected 16:9 Coordinates:")
+    
+    st.markdown(f"**Top Left (TL):** `{tl_h} H, {new_tl_v} V`")
+    st.markdown(f"**Top Right (TR):** `{tr_h} H, {new_tr_v} V`")
+    st.markdown(f"**Bottom Right (BR):** `{br_h} H, {new_br_v} V`")
+    st.markdown(f"**Bottom Left (BL):** `{bl_h} H, {new_bl_v} V`")
+        
+    st.caption(f"Applied a precise vertical offset adjustment of {y_offset} units.")
