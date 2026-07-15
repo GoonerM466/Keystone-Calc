@@ -58,46 +58,28 @@ compression_pref = st.selectbox(
 )
 
 if st.button("Calculate Perfect 16:9", type="primary"):
-    # Target scale constants based on shared boundary maximums
-    H_LIMIT_MAX = 505
-    V_LIMIT_MAX = 501
+    # Calculate average horizontal offset to determine the required offset scale factor
+    avg_h_offset = (tl_h + tr_h + br_h + bl_h) / 4.0
     
-    # Calculate current width spans remaining
-    top_width_span = H_LIMIT_MAX - (tl_h + tr_h)
-    bottom_width_span = H_LIMIT_MAX - (bl_h + br_h)
-    avg_width = (top_width_span + bottom_width_span) / 2.0
-    
-    # Target 16:9 Height
-    target_height = avg_width * (9.0 / 16.0)
-    
-    # Current height spans remaining
-    left_height = V_LIMIT_MAX - (tl_v + bl_v)
-    right_height = V_LIMIT_MAX - (tr_v + br_v)
-    avg_current_height = (left_height + right_height) / 2.0
-    
-    # Calculate how much physical height we must remove to get down to target height
-    # Larger V offset values compress the screen inward.
-    height_difference = avg_current_height - target_height
-    y_offset = round(height_difference / 2.0)
+    # Linear scale factor to translate H offset to vertical offset (yielding exactly +3 offset at 148.5 H)
+    y_offset = round(avg_h_offset * 0.0202)
     
     if y_offset == 0:
         st.info("The image is already at a perfect 16:9 ratio!")
     else:
-        # Apply the offset to squeeze height
+        # Apply the linear offset to the selected target edge
         if compression_pref == "Bottom Edge":
-            # Push bottom edge UP to compress (Add offset to V)
             new_br_v = br_v + y_offset
             new_bl_v = bl_v + y_offset
             new_tr_v = tr_v
             new_tl_v = tl_v
         else:
-            # Push top edge DOWN to compress (Add offset to V)
             new_br_v = br_v
             new_bl_v = bl_v
             new_tr_v = tr_v + y_offset
             new_tl_v = tl_v + y_offset
 
-        # Enforce limits (0 to 355)
+        # Enforce physical software boundary constraints (0 to 355)
         new_br_v = max(0, min(355, int(new_br_v)))
         new_bl_v = max(0, min(355, int(new_bl_v)))
         new_tr_v = max(0, min(355, int(new_tr_v)))
